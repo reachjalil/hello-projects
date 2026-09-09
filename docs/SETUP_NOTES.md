@@ -1,0 +1,126 @@
+# Setup notes and troubleshooting
+
+Start with the [step-by-step README](../README.md). This page has the extra details for troubleshooting, deployment settings, and maintaining your copy.
+
+## What has been checked?
+
+The app passes local persistence checks, type checking, database tests, and the Cloudflare upload dry run. [GitHub CI](https://github.com/reachjalil/hello-projects/actions) runs the same code checks. Remote provisioning and deployment have not yet been verified for this repository because of a Stripe Projects CLI account-identity issue.
+
+The Projects plugin installer worked with Stripe CLI **1.50.10** and Projects **0.38.0** on September 9, 2026. The CLI is pinned in this repo; the plugin is installed separately and can change. The Cloudflare catalog exposed `workers:free`, `workers`, and `d1`, with a required D1 database `name`.
+
+```bash
+pnpm exec stripe version
+pnpm exec stripe projects --version
+pnpm exec stripe projects catalog cloudflare
+pnpm exec stripe projects add --help
+```
+
+## Account setup
+
+Cloudflare describes [creating an account through Projects or linking an existing account](https://blog.cloudflare.com/agents-stripe-projects/). The README uses an existing account to keep the walkthrough straightforward. If you prefer Projects to create an account, skip the manual signup/link step and follow the provider onboarding when adding the first Cloudflare service.
+
+Linking an account does not import an existing D1 database. This example creates a new database. Provider access, terms, verification, and quotas still apply. The guide selects Workers Free; review any displayed price before confirming.
+
+The initialization flags keep your existing Astro app: `--mode manual` avoids a generated starter, `--yes` allows the nonempty directory, and `--skip-skills` avoids additional generated agent configuration. If initialization already succeeded, check `projects status` instead of initializing again. Check status after an interrupted provisioning command before retrying, to avoid duplicates.
+
+## Deployment settings
+
+Projects writes credentials to the active environment's configured output file, usually `.env`. Check the path printed by `projects env --pull`. Copy values into `.env.deploy` using the names below; provider output may use service-specific prefixes. Exact issued variable names are still awaiting remote verification for this starter.
+
+| Setting | Value |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | The 32-character account ID for the linked/provisioned Cloudflare account |
+| `CLOUDFLARE_D1_DATABASE_ID` | UUID of the **new** D1 database |
+| `CLOUDFLARE_D1_DATABASE_NAME` | `hello-projects`, unless you chose another database name |
+| `WORKER_NAME` | A unique Worker name in your account, e.g. `hello-projects`; choose a new name to avoid replacing another app |
+| `CLOUDFLARE_API_TOKEN` | Projects-issued token if one token authorizes both services |
+| `CLOUDFLARE_WORKERS_API_TOKEN` | Workers service token, if credentials are separate |
+| `CLOUDFLARE_D1_API_TOKEN` | D1 service token, if credentials are separate |
+| `PUBLIC_SITE_URL` | Leave blank initially; set the printed HTTPS origin after the first deploy |
+
+A service-specific token takes precedence over the common token. Workers upload requires permissions to deploy Workers/assets and bind D1; migration requires D1 write access. If Projects does not return the necessary credentials or metadata, stop and inspect its provider guidance rather than inventing a token or claiming provisioning succeeded. The exact issued key names could not yet be verified end to end for this starter.
+
+```bash
+pnpm configure
+```
+
+This validates your account/database IDs and writes ignored `wrangler.local.json`. Tokens stay outside that file and outside the deployed Worker. The runtime uses the native `DB` binding. All-zero database IDs are for local use only and are rejected by remote scripts.
+
+## Local development and checks
+
+Local D1 is persisted under `.wrangler/` and is separate from production. Deploying does not copy local records.
+
+With `pnpm dev` running, use another terminal in this folder:
+
+```bash
+pnpm verify
+pnpm check
+pnpm test
+pnpm lint
+pnpm deploy:check
+```
+
+`verify` inserts a hello, checks it across fresh requests, checks visitor separation, and rejects a cross-origin write. `deploy:check` builds and validates the upload without publishing it. Astro 7 may run the development server as a daemon; stop it with:
+
+```bash
+pnpm exec astro dev stop
+```
+
+## Optional agent skill
+
+You can install Stripe's published Projects skill before starting your coding agent:
+
+```bash
+npx skills add https://docs.stripe.com --skill stripe-projects -g -y
+```
+
+The [agent instructions](../DEPLOY_WITH_AGENT.md) describe the complete workflow. Authentication and provider authorization may still need the account owner.
+
+## Troubleshooting
+
+- **`NO_PROJECT_CONFIG`:** Login succeeded but this folder is not initialized. Complete the README’s Stripe Projects step in this directory; check `status` before linking/provisioning.
+- **`PROJECTS_ACCOUNT_IDENTITY_UNCONFIRMED`:** Projects cannot verify the account behind stored credentials. Follow the CLI's connectivity guidance; do not repeatedly log in, overwrite credential storage, or force another account. This blocked the initial remote attempt for this repo even though catalog access worked.
+- **`PROJECTS_SESSION_UNUSABLE`:** The Projects preflight cannot read a usable live-mode session. Follow its interactive, account-owner authentication instructions. Do not share keys. If an identity/connectivity error is also present, resolve that first.
+- **Old CLI/plugin installation errors:** Use this repo's `pnpm exec stripe`, not an older global binary. Reinstall the plugin with the README’s install command.
+- **Database not ready / 503 health:** Run the appropriate local or remote migration; confirm the `DB` binding points to the migrated database.
+- **Cloudflare 403:** Check account ID and that the service-issued token covers the requested operation. Do not solve it by putting a token in client code.
+- **Rate-limit message:** Wait a minute. The demo allows 5 writes per visitor per minute and 60 shared writes per minute.
+- **Record disappears:** Only the newest 1,000 records globally are retained; only your latest five appear. Clearing the browser cookie, using another browser, or the seven-day cookie expiry gives you a new visitor identity.
+- **Local and production differ:** They are separate databases. A missing `.env.deploy` does not affect local development.
+
+## Small on purpose
+
+- One server-rendered Astro page; HTML form and redirect, no frontend framework.
+- One insert route and one database health route.
+- Random browser cookie, hashed visitor identifier in D1, record UUID, and UTC timestamp. No free-text submission or account/password collection.
+- Prepared SQL, same-origin write checks, HTTP-only same-site cookie, no-store responses, and a bounded database.
+- This public demo's limits are not a production abuse defense: a visitor can reset their cookie, and a shared limit can be exhausted. Add stronger controls before adapting it into a real service.
+
+```text
+src/pages/index.astro       Page + database read
+src/pages/api/hello.ts      Insert + redirect
+src/pages/api/health.ts     Database readiness
+src/worker.ts               Astro handler + response headers
+migrations/0001_hello.sql   Schema, write limits, retention
+scripts/cloud.mjs          Configuration, migration, deployment
+scripts/verify.mjs         HTTP persistence proof
+```
+
+## Updating and cleanup
+
+For a code update, run `pnpm check`, `pnpm test`, and `pnpm deploy`. Apply new migrations with `pnpm db:remote` first when required. This initial demo has one repeatable migration; future schema changes should use new numbered files.
+
+To retire your demo, inspect resource names first:
+
+```bash
+pnpm exec stripe projects status
+pnpm exec stripe projects remove --help
+```
+
+Use `pnpm exec stripe projects remove RESOURCE_REFERENCE` for only the resources created for this demo, using references from status and reviewing each confirmation. Database removal is destructive. Remove the uploaded Worker in Cloudflare if it remains after service removal; do not remove a shared account/plan or someone else's app. Deleting the GitHub repo does not delete cloud resources.
+
+## Contributing and license
+
+MIT — see [LICENSE](../LICENSE). Issues and small, reproducible improvements are welcome. Never include `.env`, provider output containing secrets, credentials, or private account details in an issue/PR. CI checks formatting, types, database behavior, and the upload dry run without cloud credentials.
+
+Original community example; not an official Stripe, Cloudflare, or Astro product. Provider names describe the technologies used.
