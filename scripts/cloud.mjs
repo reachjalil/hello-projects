@@ -1,17 +1,21 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { parseEnv } from "node:util";
+import { resolveSettings } from "./settings.mjs";
 
-// Provider output remains untouched. Explicit aliases live in .env.deploy.
-const settings = { ...process.env };
-for (const file of [".env", ".env.deploy"]) {
+// Read the Projects output directly; .env.deploy is an optional override.
+let settings = {};
+for (const file of [process.env.PROJECTS_ENV_FILE || ".env", ".env.deploy"]) {
   if (existsSync(file))
     Object.assign(settings, parseEnv(readFileSync(file, "utf8")));
 }
+settings = resolveSettings({ ...settings, ...process.env });
 function required(key, pattern) {
   const value = settings[key];
   if (!value || (pattern && !pattern.test(value)))
-    throw new Error(`Set a valid ${key} in .env.deploy (see README).`);
+    throw new Error(
+      `Projects output is missing a valid ${key}. Run pnpm exec stripe projects env --pull. If it persists, see docs/SETUP_NOTES.md; the output mapping may need updating.`,
+    );
   return value;
 }
 function run(args, token) {

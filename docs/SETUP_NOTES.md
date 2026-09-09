@@ -1,6 +1,6 @@
 # Setup notes and troubleshooting
 
-Start with the [step-by-step README](../README.md). This page has the extra details for troubleshooting, deployment settings, and maintaining your copy.
+Start with the [full walkthrough](WALKTHROUGH.md). This page has the extra details for troubleshooting, deployment settings, and maintaining your copy.
 
 ## What has been checked?
 
@@ -17,7 +17,7 @@ pnpm exec stripe projects add --help
 
 ## Account setup
 
-Cloudflare describes [creating an account through Projects or linking an existing account](https://blog.cloudflare.com/agents-stripe-projects/). The README uses an existing account to keep the walkthrough straightforward. If you prefer Projects to create an account, skip the manual signup/link step and follow the provider onboarding when adding the first Cloudflare service.
+Cloudflare describes [creating an account through Projects or linking an existing account](https://blog.cloudflare.com/agents-stripe-projects/). The README uses `projects link cloudflare` for either path. An existing account for your Stripe email uses OAuth; otherwise Cloudflare can create one through the provider flow, with any required terms/account prompts.
 
 Linking an account does not import an existing D1 database. This example creates a new database. Provider access, terms, verification, and quotas still apply. The guide selects Workers Free; review any displayed price before confirming.
 
@@ -25,18 +25,20 @@ The initialization flags keep your existing Astro app: `--mode manual` avoids a 
 
 ## Deployment settings
 
-Projects writes credentials to the active environment's configured output file, usually `.env`. Check the path printed by `projects env --pull`. Copy values into `.env.deploy` using the names below; provider output may use service-specific prefixes. Exact issued variable names are still awaiting remote verification for this starter.
+Projects writes credentials to the active environment's configured output file, usually `.env`. Check the path printed by `projects env --pull`. The scripts read that file directly. Use `PROJECTS_ENV_FILE` if it is not `.env`. The resolver accepts the canonical keys below and resource-prefixed versions of them, plus `D1_DATABASE_ID`, `D1_DATABASE_NAME`, `WORKERS_API_TOKEN`, and `D1_API_TOKEN` suffixes. Conflicting values are rejected. Exact issued variable names are still awaiting remote verification for this starter.
+
+Normally there is no `.env.deploy` to edit. For an unusual output shape, an agent can update the resolver after inspecting key names only, or you can use `.env.deploy` as an explicit advanced override. Environment variables take precedence over local files. Never print or commit credentials.
 
 | Setting | Value |
 | --- | --- |
 | `CLOUDFLARE_ACCOUNT_ID` | The 32-character account ID for the linked/provisioned Cloudflare account |
 | `CLOUDFLARE_D1_DATABASE_ID` | UUID of the **new** D1 database |
 | `CLOUDFLARE_D1_DATABASE_NAME` | `hello-projects`, unless you chose another database name |
-| `WORKER_NAME` | A unique Worker name in your account, e.g. `hello-projects`; choose a new name to avoid replacing another app |
+| `WORKER_NAME` | Optional override; defaults to `hello-projects-` plus the first eight characters of the database ID |
 | `CLOUDFLARE_API_TOKEN` | Projects-issued token if one token authorizes both services |
 | `CLOUDFLARE_WORKERS_API_TOKEN` | Workers service token, if credentials are separate |
 | `CLOUDFLARE_D1_API_TOKEN` | D1 service token, if credentials are separate |
-| `PUBLIC_SITE_URL` | Leave blank initially; set the printed HTTPS origin after the first deploy |
+| `PUBLIC_SITE_URL` | Optional initially; set the printed HTTPS origin as a Projects variable after deployment |
 
 A service-specific token takes precedence over the common token. Workers upload requires permissions to deploy Workers/assets and bind D1; migration requires D1 write access. If Projects does not return the necessary credentials or metadata, stop and inspect its provider guidance rather than inventing a token or claiming provisioning succeeded. The exact issued key names could not yet be verified end to end for this starter.
 
@@ -78,10 +80,10 @@ The [agent instructions](../DEPLOY_WITH_AGENT.md) describe the complete workflow
 
 ## Troubleshooting
 
-- **`NO_PROJECT_CONFIG`:** Login succeeded but this folder is not initialized. Complete the README’s Stripe Projects step in this directory; check `status` before linking/provisioning.
+- **`NO_PROJECT_CONFIG`:** Login succeeded but this folder is not initialized. Complete the walkthrough’s Stripe Projects step in this directory; check `status` before linking/provisioning.
 - **`PROJECTS_ACCOUNT_IDENTITY_UNCONFIRMED`:** Projects cannot verify the account behind stored credentials. Follow the CLI's connectivity guidance; do not repeatedly log in, overwrite credential storage, or force another account. This blocked the initial remote attempt for this repo even though catalog access worked.
 - **`PROJECTS_SESSION_UNUSABLE`:** The Projects preflight cannot read a usable live-mode session. Follow its interactive, account-owner authentication instructions. Do not share keys. If an identity/connectivity error is also present, resolve that first.
-- **Old CLI/plugin installation errors:** Use this repo's `pnpm exec stripe`, not an older global binary. Reinstall the plugin with the README’s install command.
+- **Old CLI/plugin installation errors:** Use this repo's `pnpm exec stripe`, not an older global binary. Reinstall the plugin with the walkthrough’s install command.
 - **Database not ready / 503 health:** Run the appropriate local or remote migration; confirm the `DB` binding points to the migrated database.
 - **Cloudflare 403:** Check account ID and that the service-issued token covers the requested operation. Do not solve it by putting a token in client code.
 - **Rate-limit message:** Wait a minute. The demo allows 5 writes per visitor per minute and 60 shared writes per minute.
