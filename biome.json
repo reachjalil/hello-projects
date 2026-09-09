@@ -1,0 +1,22 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.astro",
+      "!**/.wrangler",
+      "!**/*.astro",
+      "!pnpm-lock.yaml"
+    ],
+    "ignoreUnknown": true
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended"
+    }
+  }
+}

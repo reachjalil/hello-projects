@@ -1,0 +1,241 @@
+---
+export const prerender = false;
+import { env } from "cloudflare:workers";
+import { VISITOR_COOKIE, visitorId, visitorHash } from "../lib/demo";
+import "../styles.css";
+const id = visitorId(Astro.request) ?? crypto.randomUUID();
+Astro.cookies.set(VISITOR_COOKIE, id, {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: Astro.url.protocol === "https:",
+  path: "/",
+  maxAge: 604800,
+});
+Astro.response.headers.set("Cache-Control", "no-store");
+const key = await visitorHash(id);
+let connected = false,
+  total = 0,
+  rows: { id: string; created_at: string }[] = [];
+try {
+  const result = await env.DB.prepare(
+    "SELECT id,created_at FROM hellos WHERE visitor_id=? ORDER BY created_at DESC,id DESC LIMIT 5",
+  )
+    .bind(key)
+    .all<{ id: string; created_at: string }>();
+  rows = result.results;
+  total =
+    (
+      await env.DB.prepare("SELECT COUNT(*) n FROM hellos WHERE visitor_id=?")
+        .bind(key)
+        .first<{ n: number }>()
+    )?.n ?? 0;
+  connected = true;
+} catch {
+  /* Show a truthful setup state instead of a fake success. */
+}
+const local = ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname);
+const saved = rows.some(
+  (row) => row.id === Astro.url.searchParams.get("saved"),
+);
+const failure = Astro.url.searchParams.get("error");
+---
+
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    /><title>Hello, Projects. A site. A database. Proof.</title><meta
+      name="description"
+      content="A tiny Astro + Cloudflare D1 demo provisioned with Stripe Projects. Save a hello, reload, and see that your database remembers."
+    /><meta name="theme-color" content="#2451ed" /><meta
+      name="robots"
+      content="noindex, nofollow"
+    /><link rel="icon" href="/favicon.svg" /><link rel="canonical" href={new URL("/", env.PUBLIC_SITE_URL || Astro.url.origin)} /></head
+  >
+  <body
+    ><div class="shell">
+      <header>
+        <a class="wordmark" href="/"
+          ><span class="mark" aria-hidden="true">h.</span>hello, projects<span
+            class="version">/ 001</span
+          ></a
+        ><a href="https://github.com/reachjalil/hello-projects" class="source"
+          >Get the source ↗</a>
+      </header>
+      <main>
+        <div class="eyebrow">
+          <span class:list={["light", { ready: connected }]}></span>{
+            local ? "LOCAL PREVIEW" : "CLOUDFLARE WORKER"
+          }
+          <span class="divider">/</span>
+          {connected ? "D1 CONNECTED" : "DATABASE NOT READY"}
+        </div>
+        <h1>
+          {
+            connected ? (
+              <>
+                {local ? "Look at that." : "There you go."}
+                <br />
+                {local ? "Your app runs." : "Your site is live."}
+                <br />
+                <em>Your database remembers.</em>
+              </>
+            ) : (
+              <>
+                One small step
+                <br />
+                from your first
+                <>
+                  <br />
+                  <em>hello, world.</em>
+                </>
+              </>
+            )
+          }
+        </h1>
+        <p class="intro">
+          {
+            connected
+              ? "A real Astro page. A real SQL database. Click below to save a hello, then reload this page. If your record is still here, you’ve proved the whole thing works."
+              : "The page is running. Apply the database migration to connect the last piece, then come back and save your first hello."
+          }
+        </p>
+        <div class="demo-grid">
+          <section class="experiment" aria-labelledby="try-title">
+            <div class="card-top">
+              <span class="label">THE SMALLEST POSSIBLE PROOF</span><span
+                class="number">01</span>
+            </div><div class="experiment-body">
+              <div class="hello-icon" aria-hidden="true">
+                hello<span>_</span>
+              </div><h2 id="try-title">Say hello to your database.</h2><p>
+                No account. No form to fill out.<br />Just one small write that
+                survives a reload.
+              </p><div class="actions">
+                <form method="post" action="/api/hello">
+                  <button class="primary" disabled={!connected}
+                    >Save a hello <span aria-hidden="true">↗</span></button>
+                </form><a class="secondary" href="/">Reload & check ↻</a>
+              </div>{
+                saved && (
+                  <p class="feedback" role="status">
+                    ✓ Saved to D1. Now reload—your record will still be here.
+                  </p>
+                )
+              }{
+                failure && (
+                  <p class="feedback error" role="alert">
+                    {failure === "rate-limit"
+                      ? "A little breather: the demo has reached its write limit. Try again in a minute."
+                      : "The database write did not complete. Check the setup guide and try again."}
+                  </p>
+                )
+              }{
+                !connected && (
+                  <pre>
+                    <code>{local ? "pnpm db:local" : "pnpm db:remote"}</code>
+                  </pre>
+                )
+              }
+            </div><div class="card-foot">
+              <span>INSERT → SELECT → SMILE</span><span
+                >REAL DATA. NO TRICKS.</span>
+            </div>
+          </section>
+          <section class="records" aria-labelledby="records-title">
+            <div class="card-top">
+              <h2 id="records-title">Your little paper trail.</h2><span
+                class="count">{total}</span>
+            </div><p class="records-caption">
+              Read fresh from D1 on this page load.
+            </p>{
+              rows.length ? (
+                <ol>
+                  {rows.map((row, index) => (
+                    <li data-record-id={row.id}>
+                      <div class="record-top">
+                        <strong>
+                          <span class="check">✓</span> Hello, world.
+                        </strong>
+                        {index === 0 && <span class="tag">LATEST</span>}
+                      </div>
+                      <code>{row.id}</code>
+                      <time datetime={row.created_at}>
+                        {new Date(row.created_at).toLocaleString("en-US", {
+                          timeZone: "UTC",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}{" "}
+                        UTC
+                      </time>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div class="empty">
+                  <>
+                    <span aria-hidden="true">[ &nbsp; ]</span>
+                    <h3>A blank page, for now.</h3>
+                    <p>
+                      Your first hello will appear here,
+                      <br />
+                      with its own ID and timestamp.
+                    </p>
+                  </>
+                </div>
+              )
+            }<p class="fineprint">
+              This browser’s latest five hellos. A seven-day anonymous cookie
+              links your browser to its rows. The shared demo keeps at most
+              1,000 recent rows, so older records may eventually roll off.
+            </p>
+          </section>
+        </div>
+        <section class="explanation" aria-label="How it works">
+          <div>
+            <span class="step">01 / PROVISION</span><h3>Stripe Projects</h3><p>
+              Connect your Cloudflare account and provision Workers + D1 from
+              the CLI.
+            </p>
+          </div><div>
+            <span class="step">02 / DEPLOY</span><h3>Astro on Workers</h3><p>
+              Your page and a tiny server endpoint, running together on
+              Cloudflare.
+            </p>
+          </div><div>
+            <span class="step">03 / REMEMBER</span><h3>A row in D1</h3><p>
+              The button inserts a row. Reloading runs a new query. There’s your
+              proof.
+            </p>
+          </div>
+        </section>
+        <div class="next">
+          <div>
+            <h2>Your turn to make something.</h2><p>
+              Every command, from Stripe login to this very page.
+            </p>
+          </div><a
+            class="primary dark"
+            href="https://github.com/reachjalil/hello-projects#readme"
+            >Follow the walkthrough ↗</a>
+        </div>
+      </main>
+      <footer>
+        <span>A small beginning. Built to be understood.</span><div>
+          <a href="https://docs.stripe.com/projects">Stripe Projects docs ↗</a
+          ><a
+            href="https://github.com/reachjalil/hello-projects/blob/main/LICENSE"
+            >MIT licensed ↗</a>
+        </div><p>
+          Independent community demo. Stripe and Cloudflare names identify the
+          tools used, not an endorsement. No personal information is requested.
+          Anonymous demo records are rate-limited and automatically bounded.
+        </p>
+      </footer>
+    </div></body>
+</html>
