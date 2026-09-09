@@ -131,3 +131,9 @@ pnpm dev
 ```
 
 Open http://127.0.0.1:4330 and say: **“This is the local version of the database interaction; the cloud setup is not complete yet.”**
+
+## Optional stretch-goal close
+
+> “Next, we can use Projects to add PostHog and see each saved hello as an analytics event. Same provisioning flow, another provider.”
+
+Show the [PostHog deliverable brief](stretch-goals/POSTHOG.md). It is a planned extension, not part of the completed core demo.

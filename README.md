@@ -126,6 +126,16 @@ The official [Stripe Projects skill](.agents/skills/stripe-projects/SKILL.md) is
 codex "Read README.md and DEPLOY_WITH_AGENT.md. Deploy this demo using Stripe Projects and Cloudflare's free plan. Ask me to complete browser authorization, then verify the live database works."
 ```
 
+## Stretch goal · Add PostHog 🦔
+
+**Next deliverable:** add PostHog through Stripe Projects, capture a `hello_saved` event after a successful database write, and show a “Hellos saved” dashboard. Reloading should not count the same save twice.
+
+```bash
+stripe projects catalog posthog
+```
+
+[Follow the PostHog stretch-goal brief →](docs/stretch-goals/POSTHOG.md) — includes provisioning commands, an agent prompt, and a definition-of-done checklist. This is an optional planned extension; analytics are not enabled yet.
+
 ## A few cool commands to try 🔎
 
 Discover what else you could build:
