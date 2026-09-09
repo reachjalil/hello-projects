@@ -1,79 +1,126 @@
 # hello, projects 👋
 
-**From a Stripe login to a website with a database.**
+**Clone a repo. Connect Cloudflare. Deploy a website with a database.**
 
-A tiny Astro demo of [Stripe Projects](https://docs.stripe.com/projects): save a hello, reload the page, and see your database remember it.
+> **Stripe Projects sets up cloud services from your terminal.** It can create a provider account or link an existing one, provision services, and sync credentials into your app—without manually copying API keys.
 
-> **Stripe Projects lets you set up cloud services from your terminal or coding agent.** Connect an existing provider account—or create one—provision services, and sync credentials into your app. You handle login and authorization; Projects handles the account and service setup.
-
-## What does Projects make possible?
-
-| You want to… | Stripe Projects lets you… |
+| Stripe Projects handles | This demo shows |
 | --- | --- |
-| Start without a Cloudflare account | Create one through the provider connection flow |
-| Use your existing account | Link it with browser authorization |
-| Add hosting and a database | Provision Cloudflare Workers and D1 from the CLI |
-| Connect your app | Sync credentials to `.env`, without copying API keys |
-| Let an agent help | Use the same commands through your coding agent |
+| Cloudflare account creation or linking | Start with your Stripe account |
+| Workers + D1 provisioning | A small Astro site with a real database |
+| Credentials synced to `.env` | Save a hello, reload, and see it persist |
 
-[Cloudflare explains how account creation and linking work →](https://blog.cloudflare.com/agents-stripe-projects/)
+## Before you start
 
-## Try the flow
+Install [Node.js 24](https://nodejs.org/en/download) and [Git](https://git-scm.com/downloads). You’ll need a Stripe account with [Projects access](https://docs.stripe.com/projects).
 
-You’ll need [Node.js 24](https://nodejs.org/en/download), Git, pnpm, and a Stripe account with Projects access. A Cloudflare account can be created during setup.
+**No Cloudflare account yet?** Projects can create one. If your Stripe email already has a Cloudflare account, you’ll authorize that account instead. [How this works →](https://blog.cloudflare.com/agents-stripe-projects/)
 
-### 1 · Get the demo
+*The local app is verified. The live flow and exact credential mapping still need verification while a Projects CLI issue is resolved.*
+
+## 1. Clone the repo
 
 ```bash
-npm install --global pnpm@10.30.2
 git clone https://github.com/reachjalil/hello-projects.git
 cd hello-projects
-pnpm install
-pnpm exec stripe plugin install projects
 ```
 
-The repo includes the [Stripe CLI](https://docs.stripe.com/cli/install). `pnpm exec stripe` runs that version.
+Run the remaining commands from this folder.
 
-### 2 · Connect to Cloudflare
+## 2. Install the tools
 
 ```bash
-pnpm exec stripe projects init hello-projects --mode manual --yes --skip-skills
-pnpm exec stripe projects link cloudflare
+npm install --global pnpm@10.30.2 @stripe/cli@1.50.10
+pnpm install --frozen-lockfile
+stripe plugin install projects
 ```
 
-Follow the login prompts. Link your existing Cloudflare account, or complete the flow to create one.
+This installs the app, the [Stripe CLI](https://docs.stripe.com/cli/install), and its Projects plugin.
 
-### 3 · Add hosting and a database
+## 3. Create your Stripe Project
 
 ```bash
-pnpm exec stripe projects add cloudflare/workers:free
-pnpm exec stripe projects add cloudflare/workers --name site
-pnpm exec stripe projects add cloudflare/d1 --name database --config '{"name":"hello-projects"}'
-pnpm exec stripe projects env --pull
+stripe projects init hello-projects --mode manual --yes --skip-skills
 ```
 
-Projects provisions the services and downloads their connection settings. This demo selects the Workers Free plan.
+Follow the login prompts. The options keep this existing Astro app in place. Already initialized this folder? Skip to the status check below.
 
-### 4 · Deploy and say hello
+## 4. Connect Cloudflare
 
 ```bash
+stripe projects link cloudflare
+stripe projects status
+```
+
+Follow the prompts to authorize an existing account or create one. Check that `status` shows the project and Cloudflare connection you want.
+
+## 5. Add hosting and a database
+
+Run these one at a time:
+
+```bash
+stripe projects add cloudflare/workers:free
+stripe projects add cloudflare/workers --name site
+stripe projects add cloudflare/d1 --name database --config '{"name":"hello-projects"}'
+stripe projects status
+```
+
+These select the free plan, add Workers hosting, and create a D1 database. Review the plan before confirming. If a command fails, check `status` before retrying.
+
+## 6. Connect the app
+
+```bash
+stripe projects env --pull
 pnpm configure
+```
+
+Projects writes the connection settings to `.env`. The demo reads them and connects its database automatically. Keep `.env` private; it’s excluded from Git.
+
+## 7. Deploy
+
+```bash
 pnpm db:remote
 pnpm deploy
 ```
 
-These repo scripts read the settings, create the database table, and upload the Astro app using Cloudflare’s deployment tooling. Open the printed URL, **save a hello**, then **reload**.
+The first command creates the online database table. The second builds and uploads the app. These scripts use Cloudflare’s deployment tooling internally.
 
-> **The proof:** your hello survives a reload because it lives in D1. Projects sets up the cloud services; the app uses them.
+**Copy the website URL printed by deployment.**
 
-**Prefer an agent?** With the Codex CLI installed, run:
+## 8. Set your public URL
+
+Replace the example below with your real URL, without a trailing `/`:
 
 ```bash
-codex "Read DEPLOY_WITH_AGENT.md. Deploy this demo with Stripe Projects and Cloudflare's free plan, then verify that a saved hello survives a reload."
+stripe projects variables set site-url --env-key PUBLIC_SITE_URL --value https://YOUR-SITE.workers.dev
+stripe projects env --pull
+pnpm deploy
 ```
 
-[Full walkthrough](docs/WALKTHROUGH.md) · [Troubleshooting](docs/SETUP_NOTES.md) · [Stripe Projects docs](https://docs.stripe.com/projects)
+This updates the page’s metadata with its public address.
 
-*Local checks pass. Live deployment and the exact provider credential mapping are awaiting verification while a Projects CLI issue is resolved.*
+## 9. Try it 🎉
+
+Open your URL. Click **Save a hello**, then **Reload & check**.
+
+> **Your hello is still there?** Your site has written to D1 and read the record back on a new request. That’s the proof.
+
+For an automatic test, use your real URL:
+
+```bash
+pnpm verify https://YOUR-SITE.workers.dev
+```
+
+It saves a record and checks that it survives two reloads.
+
+## Want an agent to run the steps?
+
+With the Codex CLI installed, run this from the repo:
+
+```bash
+codex "Read README.md and DEPLOY_WITH_AGENT.md. Deploy this demo using Stripe Projects and Cloudflare's free plan. Ask me to complete browser authorization, then verify the live database works."
+```
+
+[Local demo & extra details](docs/WALKTHROUGH.md) · [Troubleshooting](docs/SETUP_NOTES.md) · [Stripe Projects docs](https://docs.stripe.com/projects)
 
 [MIT licensed](LICENSE) · Independent community demo.

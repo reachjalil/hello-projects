@@ -6,7 +6,7 @@ Start with the [full walkthrough](WALKTHROUGH.md). This page has the extra detai
 
 The app passes local persistence checks, type checking, database tests, and the Cloudflare upload dry run. [GitHub CI](https://github.com/reachjalil/hello-projects/actions) runs the same code checks. Remote provisioning and deployment have not yet been verified for this repository because of a Stripe Projects CLI account-identity issue.
 
-The Projects plugin installer worked with Stripe CLI **1.50.10** and Projects **0.38.0** on September 9, 2026. The CLI is pinned in this repo; the plugin is installed separately and can change. The Cloudflare catalog exposed `workers:free`, `workers`, and `d1`, with a required D1 database `name`.
+The Projects plugin installer worked with Stripe CLI **1.50.10** and Projects **0.38.0** on September 9, 2026. The README installs the pinned CLI globally for short `stripe projects` commands. The repo also includes that version, available through `pnpm exec stripe`. The plugin is installed separately and can change. The Cloudflare catalog exposed `workers:free`, `workers`, and `d1`, with a required D1 database `name`.
 
 ```bash
 pnpm exec stripe version
