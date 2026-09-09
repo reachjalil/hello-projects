@@ -17,6 +17,10 @@ pnpm exec stripe projects add --help
 
 ## Account setup
 
+Use your regular Stripe account for this walkthrough and complete any Projects onboarding it requests. Provider accounts, hosting, and databases are real resources, including those on free plans.
+
+Stripe test mode and Stripe sandbox accounts are distinct. The installed Projects 0.38.0 CLI explicitly rejects test mode, but its error guidance mentions sandbox accounts as an alternative. We have not verified provider provisioning from a sandbox account, so this guide does not claim a universal sandbox restriction. Follow Projects’ account eligibility checks rather than assuming a sandbox or an ordinary payment test key can run this deployment.
+
 Cloudflare describes [creating an account through Projects or linking an existing account](https://blog.cloudflare.com/agents-stripe-projects/). The README uses `projects link cloudflare` for either path. An existing account for your Stripe email uses OAuth; otherwise Cloudflare can create one through the provider flow, with any required terms/account prompts.
 
 Linking an account does not import an existing D1 database. This example creates a new database. Provider access, terms, verification, and quotas still apply. The guide selects Workers Free; review any displayed price before confirming.

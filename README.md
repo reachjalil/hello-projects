@@ -14,6 +14,8 @@
 
 Install [Node.js 24](https://nodejs.org/en/download) and [Git](https://git-scm.com/downloads). You’ll need a Stripe account with [Projects access](https://docs.stripe.com/projects).
 
+> **Use your regular Stripe account for this walkthrough.** Projects sets up real accounts and services with providers such as Cloudflare. If you don’t already have an account there, it can create one for you. Your website and database are real cloud resources—even on a free plan—not simulated payment-test data.
+
 **No Cloudflare account yet?** Projects can create one. If your Stripe email already has a Cloudflare account, you’ll authorize that account instead. [How this works →](https://blog.cloudflare.com/agents-stripe-projects/)
 
 *The local app is verified. The live flow and exact credential mapping still need verification while a Projects CLI issue is resolved.*
