@@ -27,6 +27,10 @@ Linking an account does not import an existing D1 database. This example creates
 
 The initialization flags keep your existing Astro app: `--mode manual` avoids a generated starter, `--yes` allows the nonempty directory, and `--skip-skills` avoids additional generated agent configuration. If initialization already succeeded, check `projects status` instead of initializing again. Check status after an interrupted provisioning command before retrying, to avoid duplicates.
 
+## Billing is part of Projects too
+
+For paid services, add a payment method through Stripe Projects. Stripe supplies a payment token to the provider, which can charge for the service without receiving your underlying card details. You still choose the plan and complete any required prompts. This demo selects Workers Free and does not require a paid upgrade. See [Stripe’s billing explanation](https://docs.stripe.com/projects#upgrade-a-service-tier).
+
 ## Deployment settings
 
 Projects writes credentials to the active environment's configured output file, usually `.env`. Check the path printed by `projects env --pull`. The scripts read that file directly. Use `PROJECTS_ENV_FILE` if it is not `.env`. The resolver accepts the canonical keys below and resource-prefixed versions of them, plus `D1_DATABASE_ID`, `D1_DATABASE_NAME`, `WORKERS_API_TOKEN`, and `D1_API_TOKEN` suffixes. Conflicting values are rejected. Exact issued variable names are still awaiting remote verification for this starter.

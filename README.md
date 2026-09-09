@@ -2,13 +2,16 @@
 
 **Clone a repo. Connect Cloudflare. Deploy a website with a database.**
 
-> **Stripe Projects sets up cloud services from your terminal.** It can create a provider account or link an existing one, provision services, and sync credentials into your app—without manually copying API keys.
+> **The magic: you can start without a Cloudflare account.** Stripe Projects can create one for you, set up hosting and a database, and deliver the credentials to your app. If you choose paid services, it can also set up billing using a payment method you add through Stripe. You complete the required authorization and terms prompts; your terminal or coding agent handles the setup.
 
-| Stripe Projects handles | This demo shows |
+| As you follow the guide… | What Projects does for you |
 | --- | --- |
-| Cloudflare account creation or linking | Start with your Stripe account |
-| Workers + D1 provisioning | A small Astro site with a real database |
-| Credentials synced to `.env` | Save a hello, reload, and see it persist |
+| Connect Cloudflare | Creates an account if needed, or links your existing one |
+| Add Workers and D1 | Provisions real hosting and a database |
+| Pull your environment | Syncs credentials without manual API-key copying |
+| Choose a paid service | Enables provider billing using your Stripe-supplied payment method |
+
+**This demo uses the free plan.** Billing setup is an additional Projects capability, not a paid upgrade required by this guide. [How Projects billing works →](https://docs.stripe.com/projects#upgrade-a-service-tier)
 
 ## Before you start
 
@@ -54,7 +57,7 @@ stripe projects link cloudflare
 stripe projects status
 ```
 
-Follow the prompts to authorize an existing account or create one. Check that `status` shows the project and Cloudflare connection you want.
+Follow the prompts to authorize an existing account or create one. This is where Projects saves you a separate signup flow. Check that `status` shows the project and Cloudflare connection you want.
 
 ## 5. Add hosting and a database
 
@@ -76,7 +79,7 @@ stripe projects env --pull
 pnpm configure
 ```
 
-Projects writes the connection settings to `.env`. The demo reads them and connects its database automatically. Keep `.env` private; it’s excluded from Git.
+Projects retrieves the credentials for you and writes them to `.env`. The demo reads them and connects its database automatically. Keep `.env` private; it’s excluded from Git.
 
 ## 7. Deploy
 
