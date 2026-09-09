@@ -165,6 +165,6 @@ Run these from the repo folder. Replace `YOUR-SITE` with your deployed address.
 | Test a real database write and reload | `pnpm verify https://YOUR-SITE.workers.dev` |
 | Find more commands | `stripe projects --help` |
 
-[Local demo & extra details](docs/WALKTHROUGH.md) · [Troubleshooting](docs/SETUP_NOTES.md) · [Stripe Projects docs](https://docs.stripe.com/projects)
+[Presenter script](docs/PRESENTER_SCRIPT.md) · [Local demo & extra details](docs/WALKTHROUGH.md) · [Troubleshooting](docs/SETUP_NOTES.md) · [Stripe Projects docs](https://docs.stripe.com/projects)
 
 [MIT licensed](LICENSE) · Independent community demo.
