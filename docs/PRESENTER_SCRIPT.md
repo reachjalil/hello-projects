@@ -32,7 +32,7 @@ If you already have the repo, use that folder. Run `stripe projects status` befo
 **Run** the init command only if this folder is not already initialized:
 
 ```bash
-stripe projects init hello-projects --mode manual --yes --skip-skills
+stripe projects init hello-projects --mode manual --yes
 stripe projects link cloudflare
 stripe projects status
 ```

@@ -64,7 +64,7 @@ Keep the page open. Use a second terminal in the `hello-projects` folder for the
 Create a Stripe Project for this app:
 
 ```bash
-pnpm exec stripe projects init hello-projects --mode manual --yes --skip-skills
+pnpm exec stripe projects init hello-projects --mode manual --yes
 ```
 
 Follow the login and account-selection prompts in your browser. These options keep the app you just downloaded. If you already initialized it, skip that command and check it:

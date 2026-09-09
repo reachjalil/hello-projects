@@ -25,7 +25,7 @@ Cloudflare describes [creating an account through Projects or linking an existin
 
 Linking an account does not import an existing D1 database. This example creates a new database. Provider access, terms, verification, and quotas still apply. The guide selects Workers Free; review any displayed price before confirming.
 
-The initialization flags keep your existing Astro app: `--mode manual` avoids a generated starter, `--yes` allows the nonempty directory, and `--skip-skills` avoids additional generated agent configuration. If initialization already succeeded, check `projects status` instead of initializing again. Check status after an interrupted provisioning command before retrying, to avoid duplicates.
+The initialization flags keep your existing Astro app: `--mode manual` avoids a generated starter, `--yes` allows the nonempty directory. If initialization already succeeded, check `projects status` instead of initializing again. Check status after an interrupted provisioning command before retrying, to avoid duplicates.
 
 ## Billing is part of Projects too
 
@@ -76,15 +76,17 @@ pnpm deploy:check
 pnpm exec astro dev stop
 ```
 
-## Optional agent skill
+## Included agent skill
 
-You can install Stripe's published Projects skill before starting your coding agent:
+Stripe’s official Projects skill is committed at [`.agents/skills/stripe-projects/SKILL.md`](../.agents/skills/stripe-projects/SKILL.md). `skills-lock.json` records its source and content digest. Agents that discover repository skills can load it from a clone.
+
+To refresh it from Stripe’s published source:
 
 ```bash
-npx skills add https://docs.stripe.com --skill stripe-projects -g -y
+npx skills add https://docs.stripe.com --skill stripe-projects --yes
 ```
 
-The [agent instructions](../DEPLOY_WITH_AGENT.md) describe the complete workflow. Authentication and provider authorization may still need the account owner.
+This installs into the repository, not globally. Projects initialization also generates its detailed CLI reference skill. The [agent instructions](../DEPLOY_WITH_AGENT.md) link the workflow together.
 
 ## Troubleshooting
 

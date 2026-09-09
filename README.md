@@ -45,7 +45,7 @@ This installs the app, the [Stripe CLI](https://docs.stripe.com/cli/install), an
 ## 3. Create your Stripe Project
 
 ```bash
-stripe projects init hello-projects --mode manual --yes --skip-skills
+stripe projects init hello-projects --mode manual --yes
 ```
 
 Follow the login prompts. The options keep this existing Astro app in place. Already initialized this folder? Skip to the status check below.
@@ -120,7 +120,7 @@ It saves a record and checks that it survives two reloads.
 
 ## Want an agent to run the steps?
 
-With the Codex CLI installed, run this from the repo:
+The official [Stripe Projects skill](.agents/skills/stripe-projects/SKILL.md) is included in this repo. With the Codex CLI installed, run:
 
 ```bash
 codex "Read README.md and DEPLOY_WITH_AGENT.md. Deploy this demo using Stripe Projects and Cloudflare's free plan. Ask me to complete browser authorization, then verify the live database works."
