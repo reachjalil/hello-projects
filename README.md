@@ -126,6 +126,45 @@ With the Codex CLI installed, run this from the repo:
 codex "Read README.md and DEPLOY_WITH_AGENT.md. Deploy this demo using Stripe Projects and Cloudflare's free plan. Ask me to complete browser authorization, then verify the live database works."
 ```
 
+## A few cool commands to try 🔎
+
+Discover what else you could build:
+
+```bash
+stripe projects catalog
+stripe projects catalog cloudflare
+stripe projects search database
+```
+
+See your project as your agent sees it, then read Cloudflare’s provider guidance:
+
+```bash
+stripe projects status --json
+stripe projects llm-context --provider cloudflare --fetch
+```
+
+> **One CLI, more possibilities.** The catalog lets you discover other providers and services before you decide what to add to your app.
+
+## Cheat sheet
+
+Run these from the repo folder. Replace `YOUR-SITE` with your deployed address.
+
+| I want to… | Command |
+| --- | --- |
+| Check my project and connected services | `stripe projects status` |
+| List my Stripe Projects | `stripe projects list` |
+| Explore Cloudflare services and plans | `stripe projects catalog cloudflare` |
+| Search for a service | `stripe projects search database` |
+| Open the linked Cloudflare dashboard, if supported | `stripe projects open cloudflare` |
+| List environment variables with values hidden | `stripe projects env` |
+| Refresh the app’s local credentials | `stripe projects env --pull` |
+| Check Cloudflare charges | `stripe projects spend cloudflare` |
+| View payment setup | `stripe projects billing show` |
+| Add a payment method for paid services | `stripe projects billing add` |
+| Deploy an app update | `pnpm deploy` |
+| Test a real database write and reload | `pnpm verify https://YOUR-SITE.workers.dev` |
+| Find more commands | `stripe projects --help` |
+
 [Local demo & extra details](docs/WALKTHROUGH.md) · [Troubleshooting](docs/SETUP_NOTES.md) · [Stripe Projects docs](https://docs.stripe.com/projects)
 
 [MIT licensed](LICENSE) · Independent community demo.
